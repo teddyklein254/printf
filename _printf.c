@@ -1,65 +1,45 @@
 #include "main.h"
-
-void print_array(char array[], int *array_ist);
-
 /**
- * printf - Printf function for the array
- * @format: format.
- * Return: Printed chars.
+ * _printf - is a function that selects the correct function to print.
+ * @format: identifier to look for.
+ * Return: the length of the string.
  */
-int _printf(const char *format, ...)
+int _printf(const char * const format, ...)
 {
-	int a, num1 = 0, characters = 0;
-	int flags, width, precision, size, array_index = 0;
-	va_list list;
-	char array[BUFF_SIZE];
+	convert_match m[] = {
+		{"%s", printf_string}, {"%c", printf_char},
+		{"%%", printf_37},
+		{"%i", printf_int}, {"%d", printf_dec}, {"%r", printf_srev},
+		{"%R", printf_rot13}, {"%b", printf_bin}, {"%u", printf_unsigned},
+		{"%o", printf_oct}, {"%x", printf_hex}, {"%X", printf_HEX},
+		{"%S", printf_exclusive_string}, {"%p", printf_pointer}
+	};
 
-	if (format == ((void *)0))
+	va_list args;
+	int i = 0, j, len = 0;
+
+	va_start(args, format);
+	if (format == NULL || (format[0] == '%' && format[1] == '\0'))
 		return (-1);
 
-	va_start(list, format);
-
-	for (i = 0; format && format[i] != '\0'; i++)
+Here:
+	while (format[i] != '\0')
 	{
-		if (format[a] != '%')
+		j = 13;
+		while (j >= 0)
 		{
-			array[array_index++] = format[a];
-			if (array_index == BUFF_SIZE)
-				print_array(array, &array_index);
-			characters++;
+			if (m[j].id[0] == format[i] && m[j].id[1] == format[i + 1])
+			{
+				len += m[j].f(args);
+				i = i + 2;
+				goto Here;
+			}
+			j--;
 		}
-		else
-		{
-			print_array(array, &array_index);
-			flags = get_flags(format, &a);
-			width = get_width(format, &a, list);
-			precision = get_precision(format, &a, list);
-			size = get_size(format, &a);
-			++a;
-			num1 = handle_print(format, &a, list, array,
-				flags, width, precision, size);
-			if (num1 == -1)
-				return (-1);
-			characters += num1;
-		}
+		_putchar(format[i]);
+		len++;
+		i++;
 	}
-
-	print_array(array, &array_index);
-
-	va_end(list);
-
-	return (characters);
-}
-void print_array(array[], int *array_index)
-/**
- * print_array - prints Array containing data 
- * @array: list of data in array
- * @array_index: data length
- * Return: 0
- */
-{
-	if (*array_index > 0)
-		write(1, &array[0], *array_index);
-
-	*array_index = 0;
+	va_end(args);
+	return (len);
 }
